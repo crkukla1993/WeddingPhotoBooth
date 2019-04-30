@@ -1,0 +1,62 @@
+﻿@page
+@model IndexModel
+@{
+}
+@Html.AntiForgeryToken()
+<device type="media" onchange="update(this.data)"></device>
+
+<input id="image1" type="hidden" />
+<input id="image2" type="hidden" />
+<select id="videoSource" style="display: none;"></select>
+<div id="start-action-container" class="modal fade vh-100" style="background-color: rgba(0, 0, 0, 0.80)" role="dialog"  data-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background-color:transparent;">
+            <div class="modal-body m-auto">
+                <button id="btn-start" type="button" class="btn btn-primary btn-main m-auto">Start!</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="take-photo-action-container" class="modal fade vh-100" role="dialog" data-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background-color:transparent; position: absolute; bottom: 0;">
+            <div class="modal-body m-auto">
+                <button type="button" id="screenshot-button" class="btn btn-danger btn-lg take-photo"></button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container-fluid">
+    <video id="camera-feed" autoplay></video>
+</div>
+<div id="screenshot" class="hidden">
+    <img src="">    
+</div>
+
+
+<div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true"  data-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Photos Complete!</h5>
+            </div>
+            <div class="modal-body">
+                <div class="container collapse show" id="collapseButtons">
+                    <button type="button" class="btn btn-block btn-primary btn-lg" onclick="complete(1)">📧 Email Photos!</button>
+                    <button type="button" class="btn btn-block btn-primary btn-lg" onclick="complete(2)">🖨 Print Photos!</button>
+                    <button type="button" class="btn btn-block btn-primary btn-lg" onclick="complete(3)">📧 Email & 🖨 Print Photos!</button>
+                </div>
+                <div class="collapse" id="collapseEmail">
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input id="email" class="form-control" />
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>

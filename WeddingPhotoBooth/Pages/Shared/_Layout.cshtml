@@ -1,0 +1,214 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>@ViewBag.Title</title>
+    <link rel="stylesheet" href="~/vendor.min.css" />
+    <style>
+        .container-fluid > #camera-feed {
+            height: 100vh;
+            display: block;
+            margin: auto;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .btn.btn-main {
+            padding: 1.5rem 4rem;
+            font-size: 3.25rem;
+            line-height: 1.5;
+            border-radius: 4rem;
+        }
+
+        .modal-content{
+            border: none;
+        }
+
+        .take-photo {
+            font-size: 40px;
+            border-radius: 35px;
+            transition: all 0.5s;
+        }
+
+        .take-photo:hover {
+            font-size: 50px;
+            transition: all 0.5s;
+        }
+
+        .take-photo::before {
+            content: '📷';
+        }
+
+        .take-photo:hover::before {
+            content: '📸';
+        }
+
+        #screenshot > img {
+            position: absolute;
+            max-height: 100vh;
+            display: block;
+            width: 100%;
+            object-fit: contain;
+            margin: auto;
+            bottom: 0;
+            top: 0;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .modal-backdrop.show {
+            background: none;
+        }
+
+        /*#start-action-container{
+            z-index: 9999;
+        }*/
+    </style>
+</head>
+<body class="bg-dark">
+    
+    @RenderBody()
+    
+    <script src="~/vendor.min.js"></script>
+
+    <script>
+        $('#start-action-container').modal('show');
+
+        $('#collapseContainer').collapse({
+            toggle: false
+        });
+
+        $('#btn-start').on('click', function () {
+            $('#start-action-container').modal('hide');
+            $('#take-photo-action-container').modal('show');
+        });
+
+        function collapsetest() {
+            $('#collapseButtons').collapse('hide');
+            $('#collapseEmail').collapse('show');
+        }
+        function update(stream) {
+            document.querySelector('video').src = stream.url;
+        }
+    </script>
+    <script>
+        const videoElement = document.querySelector('video');
+        const videoSelect = document.querySelector('select#videoSource');
+
+        navigator.mediaDevices.enumerateDevices()
+            .then(gotDevices).then(getStream).catch(handleError);
+
+        videoSelect.onchange = getStream;
+
+        function gotDevices(deviceInfos) {
+            for (let i = 0; i !== deviceInfos.length; ++i) {
+                const deviceInfo = deviceInfos[i];
+                const option = document.createElement('option');
+                option.value = deviceInfo.deviceId;
+
+                if (deviceInfo.kind === 'videoinput') {
+                    option.text = deviceInfo.label || 'camera ' +
+                        (videoSelect.length + 1);
+                    videoSelect.appendChild(option);
+                } else {
+                    console.log('Found another kind of device: ', deviceInfo);
+                }
+            }
+        }
+
+        function getStream() {
+            if (window.stream) {
+                window.stream.getTracks().forEach(function (track) {
+                    track.stop();
+                });
+            }
+
+            const constraints = {
+                video: {
+                    deviceId: { exact: videoSelect.value }
+                }
+            };
+
+            navigator.mediaDevices.getUserMedia(constraints).
+                then(gotStream).catch(handleError);
+        }
+
+        function gotStream(stream) {
+            window.stream = stream; // make stream available to console
+            videoElement.srcObject = stream;
+        }
+
+        function handleError(error) {
+            console.error('Error: ', error);
+        }
+
+    </script>
+    <script>
+        const screenshotButton = $('#screenshot-button')[0];
+        const img = $('#screenshot img')[0];
+
+        const canvas = document.createElement('canvas');
+
+        screenshotButton.onclick = videoElement.onclick = function () {
+            canvas.width = videoElement.videoWidth;
+            canvas.height = videoElement.videoHeight;
+            canvas.getContext('2d').drawImage(videoElement, 0, 0);
+            var image = canvas.toDataURL("image/png");
+            img.src = image;
+            image = image.replace('data:image/png;base64,', '');
+
+            $.ajax({
+                type: 'POST',
+                url: "?handler=SubmitPhoto",
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("RequestVerificationToken",
+                        $('input:hidden[name="__RequestVerificationToken"]').val());
+                },
+                data: JSON.stringify(image),
+                contentType: 'application/json',
+                success: function (response) {
+                    $('#screenshot').removeClass('hidden');
+                    setTimeout(function () {
+                        $('#screenshot').addClass('hidden');
+                        if (response >= 3) {
+                            $('#exampleModalCenter').modal('show');
+                        }
+                    }, 3000)
+
+                },
+                error: function (response) {
+                    alert('An error occured! Retake photo...');
+                }
+            });
+        };
+
+        function complete(option) {
+            $.ajax({
+                type: 'POST',
+                url: "?handler=Complete",
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("RequestVerificationToken",
+                        $('input:hidden[name="__RequestVerificationToken"]').val());
+                },
+                data: JSON.stringify(option),
+                contentType: 'application/json',
+                success: function (response) {
+                    alert('YAY!')
+                },
+                error: function (response) {
+                    alert('Error... :(');
+                }
+            });
+        }
+
+        function handleSuccess(stream) {
+            screenshotButton.disabled = false;
+            videoElement.srcObject = stream;
+        }
+    </script>
+</body>
+</html>
