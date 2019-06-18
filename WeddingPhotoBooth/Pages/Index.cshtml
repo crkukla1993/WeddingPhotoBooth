@@ -8,16 +8,17 @@
 <input id="image1" type="hidden" />
 <input id="image2" type="hidden" />
 <select id="videoSource" style="display: none;"></select>
-<div id="start-action-container" class="modal fade vh-100" style="background-color: rgba(0, 0, 0, 0.80)" role="dialog"  data-backdrop="static">
+<div id="start-action-container" class="modal fade vh-100" style="background-color: rgba(0, 0, 0, 0.85)" role="dialog"  data-backdrop="static">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="background-color:transparent;">
+            <h1>Click to get Started!</h1>
             <div class="modal-body m-auto">
-                <button id="btn-start" type="button" class="btn btn-primary btn-main m-auto">Start!</button>
+                <button id="btn-start" type="button" class="btn btn-danger btn-main take-photo m-auto"><span class="btn-hint-text">[Spacebar]</span></button>
             </div>
         </div>
     </div>
 </div>
-<div id="take-photo-action-container" class="modal fade vh-100" role="dialog" data-backdrop="static">
+@*<div id="take-photo-action-container" class="modal fade vh-100" role="dialog" data-backdrop="static">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="background-color:transparent; position: absolute; bottom: 0;">
             <div class="modal-body m-auto">
@@ -25,14 +26,20 @@
             </div>
         </div>
     </div>
-</div>
+</div>*@
 <div class="container-fluid">
     <video id="camera-feed" autoplay></video>
 </div>
 <div id="screenshot" class="hidden">
     <img src="">    
 </div>
+<div id="countdown-container" class="hidden">
+    
+</div>
 
+<div id="flash-container" class="hidden">
+
+</div>
 
 <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true"  data-backdrop="static">
     <div class="modal-dialog modal-dialog-centered" role="document">
