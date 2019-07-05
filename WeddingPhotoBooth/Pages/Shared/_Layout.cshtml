@@ -19,7 +19,11 @@
         h1 {
             font-size: 4.5rem;
             color: white;
-            text-align:center;
+            text-align: center;
+        }
+
+        .collapseSending h1 {
+            color: black;
         }
 
         .btn.btn-main {
@@ -29,7 +33,7 @@
             border-radius: 9rem;
         }
 
-        .modal-content{
+        .modal-content {
             border: none;
         }
 
@@ -37,30 +41,78 @@
             transition: all 0.5s;
         }
 
-        .take-photo:hover, .take-photo:active, .take-photo:focus {
-            font-size: 8rem;
-            transition: all 0.5s;
+            .take-photo:hover, .take-photo:active, .take-photo:focus {
+                font-size: 8rem;
+                transition: all 0.5s;
+            }
+
+            .take-photo::before {
+                content: '📷';
+            }
+
+        .complete-btn {
+            padding: 1.25rem 0;
+            font-size: 6em;
+            border-radius: 2rem;
         }
 
-        .take-photo::before {
-            content: '📷';
+        .email-action-btn {
+            padding: 1.25rem 0;
+            font-size: 3em;
+            border-radius: 2rem;
         }
 
         .take-photo:hover::before, .take-photo:active::before, .take-photo:focus::before {
             content: '📸';
         }
 
-
-        #screenshot > img {
-            position: absolute;
-            max-height: 100vh;
-            display: block;
-            width: 100%;
-            object-fit: contain;
-            margin: auto;
-            bottom: 0;
-            top: 0;
+        .btn-email::before {
+            content: '📧';
         }
+
+        .btn-print::before {
+            content: '🖨';
+        }
+
+        .btn-email-print:before {
+            content: '📧 🖨';
+        }
+
+        .btn-start-over:before {
+            content: '👉';
+        }
+
+        #btn-start-over {
+            position: absolute;
+            z-index: 999999;
+            top: 0;
+            right: 0;
+            margin: 2rem;
+            padding: 0 2rem 1rem 2rem;
+            font-size: 6em;
+            transition: all 0.5s;
+            transform: translateY(-4em);
+        }
+
+            #btn-start-over.slide-down {
+                transform: translateY(0);
+            }
+
+            #btn-start-over:hover {
+                font-size: 6.5em;
+                transition: all 0.5s;
+            }
+
+            #screenshot > img {
+                position: absolute;
+                max-height: 100vh;
+                display: block;
+                width: 100%;
+                object-fit: contain;
+                margin: auto;
+                bottom: 0;
+                top: 0;
+            }
 
         .hidden {
             display: none;
@@ -74,18 +126,26 @@
         #countdown-container > h1.slide-number-down {
             transition: all 0.5s ease;
             transform: translateY(0.25em);
-            opacity: 0.3;
+            opacity: 0.5;
+        }
+
+        .img-fit {
+            width: 90%;
         }
 
         .modal-backdrop.show {
             background: none;
         }
 
-        .btn-hint-text{
-            font-size: 1.25rem;
-            margin-top:-25px;
-            padding-bottom:25px;
+        .btn-hint-text {
+            font-size: 0.3em;
             display: block;
+        }
+
+        .take-photo .btn-hint-text {
+            font-size: 1.25rem;
+            margin-top: -25px;
+            padding-bottom: 25px;
         }
 
         #countdown-container > #countdown {
@@ -95,21 +155,21 @@
             position: absolute;
             top: 0;
             left: 0;
-
         }
 
-        #flash-container{
+        #flash-container {
             height: 100vh;
             background-color: white;
             opacity: 1;
             transition: all 0.25s ease;
             position: relative;
         }
-        #flash-container.hidden {
-            opacity: 0;
-            display: block;
-            transition: all 0.25s ease;
-        }
+
+            #flash-container.hidden {
+                opacity: 0;
+                display: block;
+                transition: all 0.25s ease;
+            }
 
         #countdown-container > h1 {
             width: 100%;
@@ -118,40 +178,47 @@
             transition: all 0.5s ease;
         }
 
-            #countdown-container > #countdown.cd1 {
-                background-image: url(/images/1-graphic.png);
-                background-size: 500px;
-                background-repeat: no-repeat;
-                background-position: center;
-            }
+        #countdown-container > #countdown.cd1 {
+            background-image: url(/images/1-graphic.png);
+            background-size: 500px;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
 
-            #countdown-container > #countdown.cd2 {
-                background-image: url(/images/2-graphic.png);
-                background-size: 500px;
-                background-repeat: no-repeat;
-                background-position: center;
-            }
+        #countdown-container > #countdown.cd2 {
+            background-image: url(/images/2-graphic.png);
+            background-size: 500px;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
 
-            #countdown-container > #countdown.cd3 {
-                background-image: url(/images/3-graphic.png);
-                background-size: 500px;
-                background-repeat: no-repeat;
-                background-position: center;
-            }
+        #countdown-container > #countdown.cd3 {
+            background-image: url(/images/3-graphic.png);
+            background-size: 500px;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
 
-            .countdown-number-text {
-                font-size: 35rem;
-            }
+        .countdown-number-text {
+            font-size: 35rem;
+        }
 
+        .form-control-xl {
+            height: calc(2.5em + 1rem + 2px);
+            padding: .5rem 1rem;
+            font-size: 2.25rem;
+            line-height: 1.5;
+            border-radius: .3rem;
+        }
     </style>
 </head>
 <body class="bg-dark">
-    
+
     @RenderBody()
-    
+
     <script src="~/vendor.min.js"></script>
 
-    <script>   
+    <script>
         const videoElement = document.querySelector('video');
         const videoSelect = document.querySelector('select#videoSource');
         function init() {
@@ -162,12 +229,16 @@
             });
 
             $(window).on('keypress', function (event) {
-                $('#btn-start').focus();
-                start(event);
+                if (event.which === 32) {
+                    $('#btn-start').focus();
+                    start();
+                }
             });
 
             $('#btn-start').on('click', function (event) {
-                start(event);
+                if (event.which === 1) {
+                    start();
+                }
             });
             navigator.mediaDevices.enumerateDevices()
                 .then(gotDevices).then(getStream).catch(handleError);
@@ -175,33 +246,33 @@
             videoSelect.onchange = getStream;
         }
 
-        function start(event) {
-            if (event.which === 32 || event.which === 1) {
+        function start() {
+            setTimeout(function () {
+                $('#start-action-container').modal('hide');
+                $('#take-photo-action-container').modal('show');
+                $(window).off('keypress');
+                $('#btn-start-over').removeClass('hidden');
+                $('#countdown-container')
+                    .removeClass('hidden')
+                    .append('<h1>Get Ready!</h1>');
                 setTimeout(function () {
-                    $('#start-action-container').modal('hide');
-                    $('#take-photo-action-container').modal('show');
-                    $(window).off('keypress');
-                    $('#countdown-container')
-                        .removeClass('hidden')
-                        .append('<h1>Get Ready!</h1>');
-                    setTimeout(function () {
-                        $('#countdown-container > h1').addClass('slide-down');
-                        takePhotoCountdown(1);
-                    }, 1000);
-                },1000);
-            }
+                    $('#countdown-container > h1').addClass('slide-down');
+                    $('#btn-start-over').addClass('slide-down');
+                    takePhotoCountdown(1);
+                }, 1000);
+            }, 1000);
         }
 
         function takePhotoCountdown(photoNumber) {
             var numberText
             if (photoNumber === 1) {
-                 numberText = 'first';
+                numberText = 'first';
             }
             else if (photoNumber === 2) {
-                 numberText = 'second';
+                numberText = 'second';
             }
             else if (photoNumber === 3) {
-                 numberText = 'third';
+                numberText = 'third';
             }
             else {
                 return;
@@ -234,9 +305,9 @@
                                         $('#countdown-container > h1')
                                             .removeClass('countdown-number-text')
                                             .removeClass('slide-number-down');
-                                        
+
                                         takePhoto(photoNumber);
-                                    }, 1500);
+                                    }, 2000);
                                 }, 1500);
                             }, 1500);
                         }, 1500);
@@ -245,17 +316,13 @@
             }, 2500);
         }
 
-        function collapsetest() {
-            $('#collapseButtons').collapse('hide');
-            $('#collapseEmail').collapse('show');
-        }
+        $('#completeForm').on('submit', function (e) {
+            e.preventDefault();
+        })
+
         function update(stream) {
             document.querySelector('video').src = stream.url;
         }
-
-        
-
-        
 
         function gotDevices(deviceInfos) {
             for (let i = 0; i !== deviceInfos.length; ++i) {
@@ -311,28 +378,42 @@
             canvas.getContext('2d').drawImage(videoElement, 0, 0);
             var image = canvas.toDataURL("image/png");
             img.src = image;
-            image = image.replace('data:image/png;base64,', '');
+            $('#screenshot').removeClass('hidden');
+            $('#flash-container').addClass('hidden');
+            if (photoNumber === 1) {
+                $('#p1')[0].src = image;
+                setTimeout(function () {
+                    $('#screenshot').addClass('hidden');
+                    takePhotoCountdown(photoNumber += 1);
+                }, 5000);
+            }
+            else if (photoNumber === 2) {
+                $('#p2')[0].src = image;
+                setTimeout(function () {
+                    $('#screenshot').addClass('hidden');
+                    takePhotoCountdown(photoNumber += 1);
+                }, 5000);
+            }
+            else if (photoNumber === 3) {
+                $('#p3')[0].src = image;
+                submitPhotos();
+            }
+        }
+
+        function submitPhotos() {
+            var p1 = $('#p1')[0].src.replace('data:image/png;base64,', '');
+            var p2 = $('#p2')[0].src.replace('data:image/png;base64,', '');
+            var p3 = $('#p3')[0].src.replace('data:image/png;base64,', '');
 
             $.ajax({
                 type: 'POST',
-                url: "?handler=SubmitPhoto",
-                beforeSend: function (xhr) {
-                    xhr.setRequestHeader("RequestVerificationToken",
-                        $('input:hidden[name="__RequestVerificationToken"]').val());
-                },
-                data: JSON.stringify(image),
+                url: "?handler=SubmitPhotos",
+                data: JSON.stringify([p1, p2, p3]),
                 contentType: 'application/json',
                 success: function (response) {
-                    $('#screenshot').removeClass('hidden');
-                    $('#flash-container').addClass('hidden');
                     setTimeout(function () {
                         $('#screenshot').addClass('hidden');
-                        
-                        takePhotoCountdown(photoNumber += 1);
-
-                        if (response >= 3) {
-                            $('#exampleModalCenter').modal('show');
-                        }
+                        $('#exampleModalCenter').modal('show');
                     }, 5000)
 
                 },
@@ -342,18 +423,50 @@
             });
         }
 
+        function emailOptionSelected() {
+            $('#email-input').prop('required', true);
+        }
+
+        function setEmailButtonDetails(option) {
+            if (option === 1) {
+                $('#email-input').val('');
+                $('#email-collapse-complete').attr('onclick', 'complete(1)').text('📧 Send');
+            }
+            else if (option === 3) {
+                $('#email-input').val('');
+                $('#email-collapse-complete').attr('onclick', 'complete(3)').text('📧 Send & 🖨 Print');
+            }
+            $('.collapseEmail').collapse("toggle");
+        }
+
         function complete(option) {
+            if (option === 1) {
+                $('#collapseSendingMessage').text('📧 Sending Email...');
+                $('#collapseEmail').removeClass('show');
+                $('.collapseSending').collapse('show');
+            }
+            if (option === 2) {
+                $('#collapseSendingMessage').text('🖨 Printing Photo...');
+                $('#collapseEmail').removeClass('show');
+                $('.collapseSending').collapse('show');
+            }
+            if (option === 3) {
+                $('#collapseSendingMessage').text('🖨 Printing & 📧 Sending Email...');
+                $('#collapseEmail').removeClass('show');
+                $('.collapseSending').collapse('show');
+            }
             $.ajax({
                 type: 'POST',
                 url: "?handler=Complete",
-                beforeSend: function (xhr) {
-                    xhr.setRequestHeader("RequestVerificationToken",
-                        $('input:hidden[name="__RequestVerificationToken"]').val());
-                },
-                data: JSON.stringify(option),
+                data: JSON.stringify({ "option": option, "emailAddress": $('#email-input').val() }),
                 contentType: 'application/json',
                 success: function (response) {
-                    alert('YAY!')
+                    if (option === 1 || option === 3) {
+                        $('#collapseSendingMessage').text('📧 Email Sent!!!');
+                    }
+                    setTimeout(function () {
+                        window.location.reload();
+                    },5000);
                 },
                 error: function (response) {
                     alert('Error... :(');

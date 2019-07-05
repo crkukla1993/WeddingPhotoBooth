@@ -8,7 +8,7 @@
 <input id="image1" type="hidden" />
 <input id="image2" type="hidden" />
 <select id="videoSource" style="display: none;"></select>
-<div id="start-action-container" class="modal fade vh-100" style="background-color: rgba(0, 0, 0, 0.85)" role="dialog"  data-backdrop="static">
+<div id="start-action-container" class="modal fade vh-100" style="background-color: rgba(0, 0, 0, 0.85)" role="dialog" data-backdrop="static">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="background-color:transparent;">
             <h1>Click to get Started!</h1>
@@ -18,52 +18,82 @@
         </div>
     </div>
 </div>
-@*<div id="take-photo-action-container" class="modal fade vh-100" role="dialog" data-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="background-color:transparent; position: absolute; bottom: 0;">
-            <div class="modal-body m-auto">
-                <button type="button" id="screenshot-button" class="btn btn-danger btn-lg take-photo"></button>
-            </div>
-        </div>
-    </div>
-</div>*@
+
 <div class="container-fluid">
     <video id="camera-feed" autoplay></video>
 </div>
 <div id="screenshot" class="hidden">
-    <img src="">    
+    <img src="">
 </div>
 <div id="countdown-container" class="hidden">
-    
+
 </div>
 
 <div id="flash-container" class="hidden">
 
 </div>
 
-<div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true"  data-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+<div class="modal fade" id="exampleModalCenter" tabindex="-1" style="background-color: rgba(0, 0, 0, 0.85)" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLongTitle">Photos Complete!</h5>
+                <h3 class="modal-title" id="exampleModalLongTitle">Photos Complete!</h3>
             </div>
             <div class="modal-body">
-                <div class="container collapse show" id="collapseButtons">
-                    <button type="button" class="btn btn-block btn-primary btn-lg" onclick="complete(1)">📧 Email Photos!</button>
-                    <button type="button" class="btn btn-block btn-primary btn-lg" onclick="complete(2)">🖨 Print Photos!</button>
-                    <button type="button" class="btn btn-block btn-primary btn-lg" onclick="complete(3)">📧 Email & 🖨 Print Photos!</button>
-                </div>
-                <div class="collapse" id="collapseEmail">
-                    <div class="form-group">
-                        <label for="email">Email Address</label>
-                        <input id="email" class="form-control" />
+                <form id="completeForm">
+                    <div class="container-fluid" id="actionButtons">
+                        <div class="row py-3 mb-3 rounded-lg bg-dark">
+                            <div class="col text-center">
+                                <img id="p1" class="img-fit rounded-lg border border-white" style="border-width: 3px !important;" />
+                            </div>
+                            <div class="col text-center">
+                                <img id="p2" class="img-fit rounded-lg border border-white" style="border-width: 3px !important;" />
+                            </div>
+                            <div class="col text-center">
+                                <img id="p3" class="img-fit rounded-lg border border-white" style="border-width: 3px !important;" />
+                            </div>
+                        </div>
+                        <div class="row collapse collapseEmail show" >
+                            <div class="col">
+                                <button type="button" class="btn btn-block btn-primary btn-lg complete-btn btn-email" onclick="setEmailButtonDetails(1)">
+                                    <span class="btn-hint-text">Email</span>
+                                </button>
+                            </div>
+                            <div class="col">
+                                <button type="submit" class="btn btn-block btn-primary btn-lg complete-btn btn-print" onclick="complete(2)">
+                                    <span class="btn-hint-text">Print</span>
+                                </button>
+                            </div>
+                            <div class="col">
+                                <button type="submit" class="btn btn-block btn-primary btn-lg complete-btn btn-email-print" onclick="setEmailButtonDetails(3)">
+                                    <span class="btn-hint-text">Email & Print</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary">Save changes</button>
+                    <div class="collapse collapseEmail" id="collapseEmail">
+                        <div class="form-group">
+                            <h4 for="email-input">Email address</h4>
+                            <input type="email" class="form-control form-control-xl" id="email-input" aria-describedby="emailHelp" placeholder="Enter email">
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <button type="button" class="btn btn-block btn-danger btn-lg email-action-btn" data-toggle="collapse" data-target=".collapseEmail" aria-expanded="false" aria-controls="collapseEmail">👈 Back</button>
+                            </div>
+                            <div class="col">
+                                <button type="submit" id="email-collapse-complete" class="btn btn-block btn-primary btn-lg email-action-btn" onclick="complete(1)">📧 Send</button>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="collapse collapseSending">
+                        <h1 id="collapseSendingMessage">📧 Sending Email...</h1>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 </div>
+<button type="button" onclick="window.location.reload();" id="btn-start-over" class="btn btn-lg btn-danger complete-btn btn-start-over hidden">
+    <span class="btn-hint-text">Start Over</span>
+</button>

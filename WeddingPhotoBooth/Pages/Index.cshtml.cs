@@ -6,10 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.IO;
 using System.Drawing.Printing;
+using System.Drawing.Imaging;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.Net.Mail;
 using System.Net;
 
@@ -25,62 +25,125 @@ namespace WeddingPhotoBooth.Pages
             GenerateSessionKey();
         }
 
-        public IActionResult OnPostComplete([FromBody] int option)
+        public IActionResult OnPostComplete([FromBody]CompleteData completeData)
         {
-            if (CombineImages())
+            try
             {
-                if (option == 2 || option == 3)
+                if (CombineImages())
                 {
-                    PrintPhotos();
-                }
-                else if(option == 1)
-                {
-                    SendEmail();
+                    switch (completeData.Option)
+                    {
+                        case 1:
+                            SendEmail(completeData.EmailAddress);
+                            break;
+                        case 2:
+                            PrintPhotos();
+                            break;
+                        case 3:
+                            PrintPhotos();
+                            SendEmail(completeData.EmailAddress);
+                            break;
+                        default:
+                            throw new Exception("Invalid Option");
+                    }
                 }
                 return StatusCode(200);
             }
-            else
+            catch(Exception e)
             {
                 return StatusCode(500);
             }
         }
 
+        private IEnumerable<PhotoTemplateImageSetting> GetTemplateImageSettings(Bitmap bmp)
+        {
+            var lockedBitmap = new LockBitmap(bmp);
+            lockedBitmap.LockBits();
+            Color magenta = Color.FromArgb(255, 0, 255);
+            List<PhotoTemplateImageSetting> pList = new List<PhotoTemplateImageSetting>();
+            for (int y = 0; y < lockedBitmap.Height; y++)
+            {
+                for (int x = 0; x < lockedBitmap.Width; x++)
+                {
+                    Color currentPixel = lockedBitmap.GetPixel(x, y);
+                    Color LeftPixel = x == 0 ? Color.Empty : lockedBitmap.GetPixel(x - 1, y);
+                    Color TopPixel = y == 0 ? Color.Empty : lockedBitmap.GetPixel(x, y - 1);
+
+                    if (currentPixel == magenta && LeftPixel != magenta && TopPixel != magenta)
+                    {
+                        Tuple<int, int> position = new Tuple<int, int>(x - 1, y - 1);
+                        int i = x;
+                        int j = y;
+
+                        while (lockedBitmap.GetPixel(i, y) == magenta)
+                        {
+                            i++;
+                        }
+                        while (lockedBitmap.GetPixel(x, j) == magenta)
+                        {
+                            j++;
+                        }
+
+
+                        pList.Add(new PhotoTemplateImageSetting()
+                        {
+                            Position = position,
+                            Height = j - y + 3,
+                            Width = i - x + 3
+                        });
+                    }
+                }
+            }
+            lockedBitmap.UnlockBits();
+            return pList;
+        }
+
         private bool CombineImages()
         {
             using (var frame = Image.FromFile(Path.Combine(PHOTO_DIRECTORY, "template.png")))
-            using (var img1 = Image.FromFile(Path.Combine(PHOTO_DIRECTORY, SessionKey, "1.jpeg")))
-            using (var img2 = Image.FromFile(Path.Combine(PHOTO_DIRECTORY, SessionKey, "2.jpeg")))
-            using (var img3 = Image.FromFile(Path.Combine(PHOTO_DIRECTORY, SessionKey, "3.jpeg")))
+            using (var img1 = Image.FromFile(Path.Combine(PHOTO_DIRECTORY, SessionKey, "1.png")))
+            using (var img2 = Image.FromFile(Path.Combine(PHOTO_DIRECTORY, SessionKey, "2.png")))
+            using (var img3 = Image.FromFile(Path.Combine(PHOTO_DIRECTORY, SessionKey, "3.png")))
             using (var bmp1 = new Bitmap(img1, new Size(img1.Width, img1.Height)))
             using (var bmp2 = new Bitmap(img2, new Size(img2.Width, img2.Height)))
             using (var bmp3 = new Bitmap(img3, new Size(img3.Width, img3.Height)))
-            using (var bitmap = new Bitmap(1379, 2041))
+            using (var bitmap = new Bitmap(1844, 1240))
             {
+
+                var settings = GetTemplateImageSettings((Bitmap)frame);
+
                 using (var canvas = Graphics.FromImage(bitmap))
                 {
                     canvas.SmoothingMode = SmoothingMode.HighQuality;
                     canvas.CompositingQuality = CompositingQuality.HighQuality;
                     canvas.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                    canvas.DrawImage(frame, 0, 0, 1379, 2041);
-                    canvas.DrawImageUnscaledAndClipped(bmp1, new Rectangle(30, 28, 640, 480));
-                    canvas.DrawImageUnscaledAndClipped(bmp2, new Rectangle(30, 538, 640, 480));
-                    canvas.DrawImageUnscaledAndClipped(bmp3, new Rectangle(30, 1048, 640, 480));
-                    canvas.DrawImageUnscaledAndClipped(bmp1, new Rectangle(710, 28, 640, 480));
-                    canvas.DrawImageUnscaledAndClipped(bmp2, new Rectangle(710, 538, 640, 480));
-                    canvas.DrawImageUnscaledAndClipped(bmp3, new Rectangle(710, 1048, 640, 480));
+                    canvas.DrawImage(frame, 0, 0, frame.Width, frame.Height);
+                    int loop = 1;
+                    foreach(PhotoTemplateImageSetting setting in settings)
+                    {
+                        Bitmap bmp = null;
+                        if(loop % 3 == 0)
+                        {
+                            bmp = bmp3; 
+                        }
+                        else if(loop % 2 == 0)
+                        {
+                            bmp = bmp2;
+                        }
+                        else if (loop % 1 == 0)
+                        {
+                            bmp = bmp1;
+                        }
+                        canvas.DrawImage(bmp, new Rectangle(setting.Position.Item1, setting.Position.Item2, setting.Width, setting.Height));
+                        loop++;
+
+                    }
+
                     canvas.Save();
                 }
-                try
-                {
-                    bitmap.RotateFlip(RotateFlipType.Rotate90FlipNone);
-                    bitmap.Save(Path.Combine(PHOTO_DIRECTORY, SessionKey, "photoStrip.jpeg"), ImageFormat.Jpeg);
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                    return false;
-                }
+                bitmap.RotateFlip(RotateFlipType.Rotate90FlipNone);
+                bitmap.Save(Path.Combine(PHOTO_DIRECTORY, SessionKey, "photoStrip.png"), ImageFormat.Png);
+                return true;
             }
         }
 
@@ -92,22 +155,26 @@ namespace WeddingPhotoBooth.Pages
             CurrentPhotoCount = 0;
         }
         
-        public IActionResult OnPostSubmitPhoto([FromBody]string imageData, string key)
+        public IActionResult OnPostSubmitPhotos([FromBody]string[] imageDataArray)
         {
             try
             {
-                string fileNameWitPath = $@"{Path.Combine(PHOTO_DIRECTORY, SessionKey, (CurrentPhotoCount+1).ToString())}.jpeg";
-                using (FileStream fs = new FileStream(fileNameWitPath, FileMode.Create))
+                int i = 0;
+                while (i < imageDataArray.Length)
                 {
-                    using (BinaryWriter bw = new BinaryWriter(fs))
+                    string fileNameWitPath = $@"{Path.Combine(PHOTO_DIRECTORY, SessionKey, (i + 1).ToString())}.png";
+                    using (FileStream fs = new FileStream(fileNameWitPath, FileMode.Create))
                     {
-                        byte[] data = Convert.FromBase64String(imageData);
-                        bw.Write(data);
-                        bw.Close();
+                        using (BinaryWriter bw = new BinaryWriter(fs))
+                        {
+                            byte[] data = Convert.FromBase64String(imageDataArray[i]);
+                            bw.Write(data);
+                            bw.Close();
+                        }
                     }
+                    i++;
                 }
-                CurrentPhotoCount++;
-                return new JsonResult(CurrentPhotoCount);
+                return StatusCode(200);
             }
             catch (Exception)
             {
@@ -115,41 +182,28 @@ namespace WeddingPhotoBooth.Pages
             }
         }
 
-        private void SendEmail()
+        private void SendEmail(string emailAddress)
         {
-            SmtpClient smtpClient = new SmtpClient("smtp.gmail.com", 587);
+            SmtpClient smtpClient = new SmtpClient("smtp.gmail.com", 587)
+            {
+                Credentials = new System.Net.NetworkCredential("chrisandkristinawedding2020@gmail.com", "C#Coder21"),
+                EnableSsl = true
+            };
+            MailMessage mail = new MailMessage
+            {
+                Subject = "Your Photo Booth Photos - Chris & Kristina's Wedding 2020"
+            };
 
-            smtpClient.Credentials = new System.Net.NetworkCredential("chrisandkristinawedding2020@gmail.com", "C#Coder21");
-            smtpClient.EnableSsl = true;
-            MailMessage mail = new MailMessage();
-            mail.Subject = "Your Photo Booth Photos - Chris & Kristina's Wedding 2020";
-
-            mail.Attachments.Add(new Attachment(Path.Combine(PHOTO_DIRECTORY, SessionKey, "photoStrip.jpeg")));
-            mail.Attachments.Add(new Attachment(Path.Combine(PHOTO_DIRECTORY, SessionKey, "1.jpeg")));
-            mail.Attachments.Add(new Attachment(Path.Combine(PHOTO_DIRECTORY, SessionKey, "2.jpeg")));
-            mail.Attachments.Add(new Attachment(Path.Combine(PHOTO_DIRECTORY, SessionKey, "3.jpeg")));
+            mail.Attachments.Add(new Attachment(Path.Combine(PHOTO_DIRECTORY, SessionKey, "photoStrip.png")));
+            mail.Attachments.Add(new Attachment(Path.Combine(PHOTO_DIRECTORY, SessionKey, "1.png")));
+            mail.Attachments.Add(new Attachment(Path.Combine(PHOTO_DIRECTORY, SessionKey, "2.png")));
+            mail.Attachments.Add(new Attachment(Path.Combine(PHOTO_DIRECTORY, SessionKey, "3.png")));
             
 
             mail.From = new MailAddress("chrisandkristinawedding2020@gmail.com");
-            mail.To.Add(new MailAddress("crkukla1993@gmail.com"));
+            mail.To.Add(new MailAddress(emailAddress));
 
             smtpClient.Send(mail);
-        }
-
-        private static bool CheckForInternetConnection()
-        {
-            try
-            {
-                using (var client = new WebClient())
-                using (client.OpenRead("http://clients3.google.com/generate_204"))
-                {
-                    return true;
-                }
-            }
-            catch
-            {
-                return false;
-            }
         }
 
         private void PrintPhotos()
@@ -158,9 +212,11 @@ namespace WeddingPhotoBooth.Pages
             {
                 PrintDocument pd = new PrintDocument();
                 pd.PrinterSettings.PrinterName = @"Canon SELPHY CP1300 WS";
+                //pd.PrinterSettings.PrinterName = @"HP807FE1 (HP OfficeJet Pro 6960)";
                 //pd.PrinterSettings.PrinterName = @"HP3B556A (HP Officejet 6600)";
-                pd.DefaultPageSettings.Color = false;
+                pd.DefaultPageSettings.Color = true;
                 pd.OriginAtMargins = false;
+
                 pd.PrintPage += new PrintPageEventHandler
                     (this.printImage);
                 pd.Print();
@@ -173,7 +229,7 @@ namespace WeddingPhotoBooth.Pages
 
         private void printImage(object sender, PrintPageEventArgs ev)
         {
-            Image i = Image.FromFile(Path.Combine(PHOTO_DIRECTORY, SessionKey, "photoStrip.jpeg"));
+            Image i = Image.FromFile(Path.Combine(PHOTO_DIRECTORY, SessionKey, "photoStrip.png"));
 
             float newWidth = i.Width * 100 / i.HorizontalResolution;  // Convert to same units (100 ppi) as e.MarginBounds.Width
             float newHeight = i.Height * 100 / i.VerticalResolution;   // Convert to same units (100 ppi) as e.MarginBounds.Height
