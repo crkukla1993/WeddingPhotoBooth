@@ -3,7 +3,7 @@
 @{
 }
 @Html.AntiForgeryToken()
-<device type="media" onchange="update(this.data)"></device>
+<device type="media" onchange="changeCamera(this.data)"></device>
 
 <input id="image1" type="hidden" />
 <input id="image2" type="hidden" />
@@ -11,7 +11,7 @@
 <div id="start-action-container" class="modal fade vh-100" style="background-color: rgba(0, 0, 0, 0.85)" role="dialog" data-backdrop="static">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="background-color:transparent;">
-            <h1>Click to get Started!</h1>
+            <h1>Click the camera button to get started!</h1>
             <div class="modal-body m-auto">
                 <button id="btn-start" type="button" class="btn btn-danger btn-main take-photo m-auto"><span class="btn-hint-text">[Spacebar]</span></button>
             </div>
@@ -53,19 +53,24 @@
                                 <img id="p3" class="img-fit rounded-lg border border-white" style="border-width: 3px !important;" />
                             </div>
                         </div>
-                        <div class="row collapse collapseEmail show" >
+                        <div class="row collapse collapseOptions show">
+                            <div class="col text-center mb-3">
+                                <h2>Click on one of the options below</h2>
+                            </div>
+                        </div>
+                        <div class="row collapse collapseOptions show" >
                             <div class="col">
                                 <button type="button" class="btn btn-block btn-primary btn-lg complete-btn btn-email" onclick="setEmailButtonDetails(1)">
                                     <span class="btn-hint-text">Email</span>
                                 </button>
                             </div>
                             <div class="col">
-                                <button type="submit" class="btn btn-block btn-primary btn-lg complete-btn btn-print" onclick="complete(2)">
+                                <button type="button" class="btn btn-block btn-primary btn-lg complete-btn btn-print" onclick="complete(2)">
                                     <span class="btn-hint-text">Print</span>
                                 </button>
                             </div>
                             <div class="col">
-                                <button type="submit" class="btn btn-block btn-primary btn-lg complete-btn btn-email-print" onclick="setEmailButtonDetails(3)">
+                                <button type="button" class="btn btn-block btn-primary btn-lg complete-btn btn-email-print" onclick="setEmailButtonDetails(3)">
                                     <span class="btn-hint-text">Email & Print</span>
                                 </button>
                             </div>
@@ -73,12 +78,12 @@
                     </div>
                     <div class="collapse collapseEmail" id="collapseEmail">
                         <div class="form-group">
-                            <h4 for="email-input">Email address</h4>
-                            <input type="email" class="form-control form-control-xl" id="email-input" aria-describedby="emailHelp" placeholder="Enter email">
+                            <h4 for="email-input">Email Address</h4>
+                            <input type="email" class="form-control form-control-xl" id="email-input" autocomplete="off" placeholder="Enter email address">
                         </div>
                         <div class="row">
                             <div class="col">
-                                <button type="button" class="btn btn-block btn-danger btn-lg email-action-btn" data-toggle="collapse" data-target=".collapseEmail" aria-expanded="false" aria-controls="collapseEmail">👈 Back</button>
+                                <button type="button" class="btn btn-block btn-danger btn-lg email-action-btn" onclick="backToOptions()">👈 Back</button>
                             </div>
                             <div class="col">
                                 <button type="submit" id="email-collapse-complete" class="btn btn-block btn-primary btn-lg email-action-btn" onclick="complete(1)">📧 Send</button>
@@ -87,13 +92,13 @@
                         </div>
                     </div>
                     <div class="collapse collapseSending">
-                        <h1 id="collapseSendingMessage">📧 Sending Email...</h1>
+                        <div id="collapseSendingMessage"></div>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
-<button type="button" onclick="window.location.reload();" id="btn-start-over" class="btn btn-lg btn-danger complete-btn btn-start-over hidden">
+<button type="button" onclick="deleteSession()" id="btn-start-over" class="btn btn-lg btn-danger complete-btn btn-start-over hidden">
     <span class="btn-hint-text">Start Over</span>
 </button>

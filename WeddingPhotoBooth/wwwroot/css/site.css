@@ -1,0 +1,232 @@
+﻿.container-fluid > #camera-feed {
+    height: 100vh;
+    display: block;
+    margin: auto;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+h1 {
+    font-size: 4.5rem;
+    color: white;
+    text-align: center;
+}
+
+.collapseSending h1 {
+    color: black;
+}
+
+.btn.btn-main {
+    padding: 0.5rem 2rem;
+    font-size: 6.25rem;
+    line-height: 1.5;
+    border-radius: 9rem;
+}
+
+.modal-content {
+    border: none;
+}
+
+.take-photo {
+    transition: all 0.5s;
+}
+
+    .take-photo:hover, .take-photo:active, .take-photo:focus {
+        font-size: 8rem;
+        transition: all 0.5s;
+    }
+
+    .take-photo::before {
+        content: '📷';
+    }
+
+.complete-btn {
+    padding: 1.25rem 0;
+    font-size: 6em;
+    border-radius: 2rem;
+}
+
+.email-action-btn {
+    padding: 1.25rem 0;
+    font-size: 3em;
+    border-radius: 2rem;
+}
+
+.take-photo:hover::before, .take-photo:active::before, .take-photo:focus::before {
+    content: '📸';
+}
+
+.btn-email::before {
+    content: '📧';
+}
+
+.btn-print::before {
+    content: '🖨';
+}
+
+.btn-email-print:before {
+    content: '📧 🖨';
+}
+
+.btn-start-over:before {
+    content: '👉';
+}
+
+#btn-start-over {
+    position: absolute;
+    z-index: 999999;
+    top: 0;
+    right: 0;
+    margin: 2rem;
+    padding: 0 2rem 1rem 2rem;
+    font-size: 6em;
+    transition: all 0.5s;
+    transform: translateY(-4em);
+}
+
+    #btn-start-over.slide-down {
+        transform: translateY(0);
+    }
+
+    #btn-start-over:hover {
+        font-size: 6.5em;
+        transition: all 0.5s;
+    }
+
+#screenshot > img {
+    position: absolute;
+    max-height: 100vh;
+    display: block;
+    width: 100%;
+    object-fit: contain;
+    margin: auto;
+    bottom: 0;
+    top: 0;
+}
+
+.hidden {
+    display: none;
+}
+
+#countdown-container > h1.slide-down {
+    transition: all 0.5s ease;
+    transform: translateY(3em);
+}
+
+#countdown-container > h1.slide-number-down {
+    transition: all 0.5s ease;
+    transform: translateY(0.25em);
+    opacity: 0.5;
+}
+
+.img-fit {
+    width: 90%;
+}
+
+.modal-backdrop.show {
+    background: none;
+}
+
+.btn-hint-text {
+    font-size: 0.3em;
+    display: block;
+}
+
+.take-photo .btn-hint-text {
+    font-size: 1.25rem;
+    margin-top: -25px;
+    padding-bottom: 25px;
+}
+
+#countdown-container > #countdown {
+    height: 100vh;
+    display: block;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+#flash-container {
+    height: 100vh;
+    background-color: white;
+    opacity: 1;
+    transition: all 0.25s ease;
+    position: relative;
+}
+
+    #flash-container.hidden {
+        opacity: 0;
+        display: block;
+        transition: all 0.25s ease;
+    }
+
+#countdown-container > h1 {
+    width: 100%;
+    position: absolute;
+    transform: translateY(-4em);
+    transition: all 0.5s ease;
+}
+
+#countdown-container > #countdown.cd1 {
+    background-image: url(/images/1-graphic.png);
+    background-size: 500px;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+#countdown-container > #countdown.cd2 {
+    background-image: url(/images/2-graphic.png);
+    background-size: 500px;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+#countdown-container > #countdown.cd3 {
+    background-image: url(/images/3-graphic.png);
+    background-size: 500px;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.countdown-number-text {
+    font-size: 35rem;
+}
+
+.form-control-xl {
+    height: calc(2.5em + 1rem + 2px);
+    padding: .5rem 1rem;
+    font-size: 2.25rem;
+    line-height: 1.5;
+    border-radius: .3rem;
+}
+
+
+@keyframes blink {
+    0% {
+        opacity: .2;
+    }
+    20% {
+        opacity: 1;
+    }
+    100% {
+        opacity: .2;
+    }
+}
+
+.saving span {
+    animation-name: blink;
+    animation-duration: 1.4s;
+    animation-iteration-count: infinite;
+    animation-fill-mode: both;
+}
+
+    .saving span:nth-child(2) {
+        animation-delay: .2s;
+    }
+
+    .saving span:nth-child(3) {
+        animation-delay: .4s;
+    }

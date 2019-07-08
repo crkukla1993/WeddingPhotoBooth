@@ -1,28 +1,29 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.IO;
 using System.Drawing.Printing;
 using System.Drawing.Imaging;
-using System.Diagnostics;
 using System.Drawing.Drawing2D;
 using System.Drawing;
 using System.Net.Mail;
-using System.Net;
+using Newtonsoft.Json;
+using WeddingPhotoBooth.Classes;
+using Microsoft.Extensions.Configuration;
 
 namespace WeddingPhotoBooth.Pages
 {
     public class IndexModel : PageModel
     {
         public static string SessionKey { get; set; }
-        private static int CurrentPhotoCount { get; set; }
-        private const string PHOTO_DIRECTORY = @"C:\PhotoBooth";
-        public void OnGet()
+        private readonly string _photoBoothDirectory;
+        private readonly IConfiguration _configuration;
+        public IndexModel(IConfiguration configuration)
         {
-            GenerateSessionKey();
+            _configuration = configuration;
+            _photoBoothDirectory = _configuration.GetValue<string>("PhotoBoothDirectory");
         }
 
         public IActionResult OnPostComplete([FromBody]CompleteData completeData)
@@ -35,13 +36,16 @@ namespace WeddingPhotoBooth.Pages
                     {
                         case 1:
                             SendEmail(completeData.EmailAddress);
+                            WriteToJsonLog("Photos emailed", LogItemType.Complete, completeData.EmailAddress);
                             break;
                         case 2:
                             PrintPhotos();
+                            WriteToJsonLog("Photos printed", LogItemType.Complete);
                             break;
                         case 3:
                             PrintPhotos();
                             SendEmail(completeData.EmailAddress);
+                            WriteToJsonLog("Photos emailed & printed", LogItemType.Complete, completeData.EmailAddress);
                             break;
                         default:
                             throw new Exception("Invalid Option");
@@ -49,8 +53,9 @@ namespace WeddingPhotoBooth.Pages
                 }
                 return StatusCode(200);
             }
-            catch(Exception e)
+            catch(Exception)
             {
+                WriteToJsonLog("Photo errored on complete", LogItemType.Error);
                 return StatusCode(500);
             }
         }
@@ -100,59 +105,70 @@ namespace WeddingPhotoBooth.Pages
 
         private bool CombineImages()
         {
-            using (var frame = Image.FromFile(Path.Combine(PHOTO_DIRECTORY, "template.png")))
-            using (var img1 = Image.FromFile(Path.Combine(PHOTO_DIRECTORY, SessionKey, "1.png")))
-            using (var img2 = Image.FromFile(Path.Combine(PHOTO_DIRECTORY, SessionKey, "2.png")))
-            using (var img3 = Image.FromFile(Path.Combine(PHOTO_DIRECTORY, SessionKey, "3.png")))
-            using (var bmp1 = new Bitmap(img1, new Size(img1.Width, img1.Height)))
-            using (var bmp2 = new Bitmap(img2, new Size(img2.Width, img2.Height)))
-            using (var bmp3 = new Bitmap(img3, new Size(img3.Width, img3.Height)))
-            using (var bitmap = new Bitmap(1844, 1240))
+            try
             {
-
-                var settings = GetTemplateImageSettings((Bitmap)frame);
-
-                using (var canvas = Graphics.FromImage(bitmap))
+                string templatePath = _configuration.GetValue<string>("TemplateFullFilePath");
+                using (var frame = Image.FromFile(templatePath))
+                using (var img1 = Image.FromFile(Path.Combine(_photoBoothDirectory, "sessions", SessionKey, "1.jpeg")))
+                using (var img2 = Image.FromFile(Path.Combine(_photoBoothDirectory, "sessions", SessionKey, "2.jpeg")))
+                using (var img3 = Image.FromFile(Path.Combine(_photoBoothDirectory, "sessions", SessionKey, "3.jpeg")))
+                using (var bmp1 = new Bitmap(img1, new Size(img1.Width, img1.Height)))
+                using (var bmp2 = new Bitmap(img2, new Size(img2.Width, img2.Height)))
+                using (var bmp3 = new Bitmap(img3, new Size(img3.Width, img3.Height)))
+                using (var bitmap = new Bitmap(1844, 1240))
                 {
-                    canvas.SmoothingMode = SmoothingMode.HighQuality;
-                    canvas.CompositingQuality = CompositingQuality.HighQuality;
-                    canvas.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                    canvas.DrawImage(frame, 0, 0, frame.Width, frame.Height);
-                    int loop = 1;
-                    foreach(PhotoTemplateImageSetting setting in settings)
+
+                    var settings = GetTemplateImageSettings((Bitmap)frame);
+
+                    using (var canvas = Graphics.FromImage(bitmap))
                     {
-                        Bitmap bmp = null;
-                        if(loop % 3 == 0)
+                        canvas.SmoothingMode = SmoothingMode.HighQuality;
+                        canvas.CompositingQuality = CompositingQuality.HighQuality;
+                        canvas.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                        canvas.DrawImage(frame, 0, 0, frame.Width, frame.Height);
+                        int loop = 1;
+                        foreach (PhotoTemplateImageSetting setting in settings)
                         {
-                            bmp = bmp3; 
-                        }
-                        else if(loop % 2 == 0)
-                        {
-                            bmp = bmp2;
-                        }
-                        else if (loop % 1 == 0)
-                        {
-                            bmp = bmp1;
-                        }
-                        canvas.DrawImage(bmp, new Rectangle(setting.Position.Item1, setting.Position.Item2, setting.Width, setting.Height));
-                        loop++;
+                            Bitmap bmp = null;
+                            if (loop % 3 == 0)
+                            {
+                                bmp = bmp3;
+                            }
+                            else if (loop % 2 == 0)
+                            {
+                                bmp = bmp2;
+                            }
+                            else if (loop % 1 == 0)
+                            {
+                                bmp = bmp1;
+                            }
+                            canvas.DrawImage(bmp, new Rectangle(setting.Position.Item1, setting.Position.Item2, setting.Width, setting.Height));
+                            loop++;
 
+                        }
+
+                        canvas.Save();
                     }
-
-                    canvas.Save();
+                    //bitmap.RotateFlip(RotateFlipType.Rotate90FlipNone);
+                    bitmap.Save(Path.Combine(_photoBoothDirectory, "sessions", SessionKey, "photoStrip.jpeg"), ImageFormat.Jpeg);
+                    WriteToJsonLog("Photo strip saved to file", LogItemType.System);
+                    return true;
                 }
-                bitmap.RotateFlip(RotateFlipType.Rotate90FlipNone);
-                bitmap.Save(Path.Combine(PHOTO_DIRECTORY, SessionKey, "photoStrip.png"), ImageFormat.Png);
-                return true;
+            }
+            catch (Exception)
+            {
+                WriteToJsonLog("Photo errored on combine", LogItemType.Error);
+                return false;
             }
         }
 
-        private void GenerateSessionKey()
+        public IActionResult OnPostGenerateSessionKey()
         {
             SessionKey = Guid.NewGuid().ToString();
-            DirectoryInfo di = new DirectoryInfo(Path.Combine(PHOTO_DIRECTORY, SessionKey));
+            DirectoryInfo di = new DirectoryInfo(Path.Combine(_photoBoothDirectory, "sessions", SessionKey));
             di.Create();
-            CurrentPhotoCount = 0;
+            WriteToJsonLog("Session started", LogItemType.Start);
+            return new ContentResult() { Content = SessionKey, ContentType = "plain/text", StatusCode = 200 };
         }
         
         public IActionResult OnPostSubmitPhotos([FromBody]string[] imageDataArray)
@@ -162,7 +178,7 @@ namespace WeddingPhotoBooth.Pages
                 int i = 0;
                 while (i < imageDataArray.Length)
                 {
-                    string fileNameWitPath = $@"{Path.Combine(PHOTO_DIRECTORY, SessionKey, (i + 1).ToString())}.png";
+                    string fileNameWitPath = $@"{Path.Combine(_photoBoothDirectory, "sessions", SessionKey, (i + 1).ToString())}.jpeg";
                     using (FileStream fs = new FileStream(fileNameWitPath, FileMode.Create))
                     {
                         using (BinaryWriter bw = new BinaryWriter(fs))
@@ -174,33 +190,42 @@ namespace WeddingPhotoBooth.Pages
                     }
                     i++;
                 }
+                WriteToJsonLog("Saved photos to file", LogItemType.System);
                 return StatusCode(200);
             }
             catch (Exception)
             {
+                WriteToJsonLog("Photos errored on save", LogItemType.Error);
                 return StatusCode(500);
             }
         }
 
         private void SendEmail(string emailAddress)
         {
-            SmtpClient smtpClient = new SmtpClient("smtp.gmail.com", 587)
+            IConfigurationSection emailSection = _configuration.GetSection("Email");
+            string smtpClientUrl = emailSection.GetValue<string>("SMTPClientUrl");
+            int smtpClientPort = emailSection.GetValue<int>("SMTPClientPort");
+            string sender = emailSection.GetValue<string>("EmailAddress");
+            string emailPassword = emailSection.GetValue<string>("EmailPassword");
+            string emailSubject = emailSection.GetValue<string>("EmailSubject");
+
+            SmtpClient smtpClient = new SmtpClient(smtpClientUrl, smtpClientPort)
             {
-                Credentials = new System.Net.NetworkCredential("chrisandkristinawedding2020@gmail.com", "C#Coder21"),
+                Credentials = new System.Net.NetworkCredential(sender, emailPassword),
                 EnableSsl = true
             };
             MailMessage mail = new MailMessage
             {
-                Subject = "Your Photo Booth Photos - Chris & Kristina's Wedding 2020"
+                Subject = emailSubject
             };
 
-            mail.Attachments.Add(new Attachment(Path.Combine(PHOTO_DIRECTORY, SessionKey, "photoStrip.png")));
-            mail.Attachments.Add(new Attachment(Path.Combine(PHOTO_DIRECTORY, SessionKey, "1.png")));
-            mail.Attachments.Add(new Attachment(Path.Combine(PHOTO_DIRECTORY, SessionKey, "2.png")));
-            mail.Attachments.Add(new Attachment(Path.Combine(PHOTO_DIRECTORY, SessionKey, "3.png")));
+            mail.Attachments.Add(new Attachment(Path.Combine(_photoBoothDirectory, "sessions", SessionKey, "photoStrip.jpeg")));
+            mail.Attachments.Add(new Attachment(Path.Combine(_photoBoothDirectory, "sessions", SessionKey, "1.jpeg")));
+            mail.Attachments.Add(new Attachment(Path.Combine(_photoBoothDirectory, "sessions", SessionKey, "2.jpeg")));
+            mail.Attachments.Add(new Attachment(Path.Combine(_photoBoothDirectory, "sessions", SessionKey, "3.jpeg")));
             
 
-            mail.From = new MailAddress("chrisandkristinawedding2020@gmail.com");
+            mail.From = new MailAddress(sender);
             mail.To.Add(new MailAddress(emailAddress));
 
             smtpClient.Send(mail);
@@ -210,26 +235,29 @@ namespace WeddingPhotoBooth.Pages
         {
             try
             {
+                string printerName = _configuration.GetValue<string>("PrinterName");
                 PrintDocument pd = new PrintDocument();
-                pd.PrinterSettings.PrinterName = @"Canon SELPHY CP1300 WS";
+                pd.PrinterSettings.PrinterName = printerName;
+                //pd.PrinterSettings.PrinterName = @"Canon SELPHY CP1300 WS";
                 //pd.PrinterSettings.PrinterName = @"HP807FE1 (HP OfficeJet Pro 6960)";
                 //pd.PrinterSettings.PrinterName = @"HP3B556A (HP Officejet 6600)";
                 pd.DefaultPageSettings.Color = true;
                 pd.OriginAtMargins = false;
 
                 pd.PrintPage += new PrintPageEventHandler
-                    (this.printImage);
+                    (this.PrintImage);
                 pd.Print();
             }
             catch (Exception ex)
             {
+                WriteToJsonLog("System errored on print", LogItemType.Error);
                 Console.WriteLine(ex.Message);
             }
         }
 
-        private void printImage(object sender, PrintPageEventArgs ev)
+        private void PrintImage(object sender, PrintPageEventArgs ev)
         {
-            Image i = Image.FromFile(Path.Combine(PHOTO_DIRECTORY, SessionKey, "photoStrip.png"));
+            Image i = Image.FromFile(Path.Combine(_photoBoothDirectory, "sessions", SessionKey, "photoStrip.jpeg"));
 
             float newWidth = i.Width * 100 / i.HorizontalResolution;  // Convert to same units (100 ppi) as e.MarginBounds.Width
             float newHeight = i.Height * 100 / i.VerticalResolution;   // Convert to same units (100 ppi) as e.MarginBounds.Height
@@ -253,6 +281,107 @@ namespace WeddingPhotoBooth.Pages
             }
 
             ev.Graphics.DrawImage(i, 12, 12, (int)(newWidth*2)-12, (int)(newHeight*2)-12);
+        }
+
+        public IActionResult OnPostDeleteSession()
+        {
+            try
+            {
+                DirectoryInfo di = new DirectoryInfo(Path.Combine(_photoBoothDirectory, "sessions", SessionKey));
+                di.Delete();
+                WriteToJsonLog("Session deleted", LogItemType.System);
+                return StatusCode(200);
+            }
+            catch (Exception)
+            {
+                WriteToJsonLog("Error on deleting session", LogItemType.Error);
+                return StatusCode(500);
+            }
+        }
+
+        public IActionResult OnPostLogAction([FromBody]string action)
+        {
+            try
+            {
+                WriteToJsonLog(action, LogItemType.System);
+            }
+            catch (Exception)
+            {
+
+            }
+            return StatusCode(200);
+        }
+
+
+        private List<LogSession> LoadJsonLog()
+        {
+            List<LogSession> items;
+            string path = _configuration.GetValue<string>("LogFullFilePath");
+            FileInfo f = new FileInfo(path);
+            if (!f.Exists)
+            {
+                FileStream fs = f.Create();
+                fs.Close();                
+            }
+            
+            using (StreamReader r = new StreamReader(path))
+            {
+                string json = r.ReadToEnd();
+                items = JsonConvert.DeserializeObject<List<LogSession>>(json);
+            }
+            return items;
+        }
+
+        private void WriteToJsonLog(string action, LogItemType logItemType, string emailAddress = null)
+        {
+            try
+            {
+                string path = _configuration.GetValue<string>("LogFullFilePath");
+                List<LogSession> items = LoadJsonLog() ?? new List<LogSession>();
+
+                LogSession session = items.FirstOrDefault(x => x.SessionKey == SessionKey);
+                if (session == null)
+                {
+                    session = new LogSession()
+                    {
+                        SessionKey = SessionKey,
+                        CreateDate = DateTime.Now,
+                        Items = new List<LogItem>()
+                    };
+
+                    session.Items.Add(new LogItem()
+                    {
+                        Action = action,
+                        EmailAddress = emailAddress,
+                        LogItemType = logItemType,
+                        LogDate = DateTime.Now
+                    });
+                    items.Add(session);
+                }
+                else
+                {
+                    items.Remove(session);
+                    session.Items.Add(new LogItem()
+                    {
+                        Action = action,
+                        EmailAddress = emailAddress,
+                        LogItemType = logItemType,
+                        LogDate = DateTime.Now
+                    });
+                    items.Add(session);
+                }
+
+                items = items.OrderBy(x => x.CreateDate).ToList();
+                string data = JsonConvert.SerializeObject(items);
+                using (StreamWriter writer = new StreamWriter(path))
+                {
+                    writer.Write(data);
+                }
+            }
+            catch (Exception)
+            {
+
+            }
         }
     }
 }

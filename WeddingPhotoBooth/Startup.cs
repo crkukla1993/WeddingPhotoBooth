@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace WeddingPhotoBooth
@@ -15,6 +16,8 @@ namespace WeddingPhotoBooth
     {
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
+        public IConfiguration Configuration { get; set; }
+
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().AddRazorPagesOptions(o =>
@@ -33,6 +36,14 @@ namespace WeddingPhotoBooth
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+            var builder = new ConfigurationBuilder()
+            .SetBasePath(env.ContentRootPath)
+            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+            .AddJsonFile($"appsettings{env.EnvironmentName}.json", optional: true)
+            .AddEnvironmentVariables();
+
+            Configuration = builder.Build();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -41,10 +52,11 @@ namespace WeddingPhotoBooth
             {
                 app.UseExceptionHandler("/Error");
             }
-
+            
             app.UseStaticFiles();
 
             app.UseMvc();
+            
         }
     }
 }

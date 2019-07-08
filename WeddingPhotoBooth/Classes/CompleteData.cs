@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace WeddingPhotoBooth
+namespace WeddingPhotoBooth.Classes
 {
     public class CompleteData
     {

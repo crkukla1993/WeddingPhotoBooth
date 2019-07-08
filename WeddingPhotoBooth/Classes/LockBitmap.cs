@@ -6,7 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace WeddingPhotoBooth
+namespace WeddingPhotoBooth.Classes
 {
     public class LockBitmap
     {

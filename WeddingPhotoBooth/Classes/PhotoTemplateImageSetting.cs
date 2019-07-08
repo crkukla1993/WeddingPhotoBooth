@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace WeddingPhotoBooth
+namespace WeddingPhotoBooth.Classes
 {
     public class PhotoTemplateImageSetting
     {
