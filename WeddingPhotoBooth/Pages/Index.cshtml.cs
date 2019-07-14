@@ -53,10 +53,10 @@ namespace WeddingPhotoBooth.Pages
                 }
                 return StatusCode(200);
             }
-            catch(Exception)
+            catch(Exception e)
             {
                 WriteToJsonLog("Photo errored on complete", LogItemType.Error);
-                return StatusCode(500);
+                return new ContentResult() { Content = e.Message, ContentType = "plain/text", StatusCode = 500 };
             }
         }
 
@@ -212,8 +212,9 @@ namespace WeddingPhotoBooth.Pages
             SmtpClient smtpClient = new SmtpClient(smtpClientUrl, smtpClientPort)
             {
                 Credentials = new System.Net.NetworkCredential(sender, emailPassword),
-                EnableSsl = true
+                EnableSsl = true               
             };
+            
             MailMessage mail = new MailMessage
             {
                 Subject = emailSubject
@@ -288,11 +289,11 @@ namespace WeddingPhotoBooth.Pages
             try
             {
                 DirectoryInfo di = new DirectoryInfo(Path.Combine(_photoBoothDirectory, "sessions", SessionKey));
-                di.Delete();
+                di.Delete(true);
                 WriteToJsonLog("Session deleted", LogItemType.System);
                 return StatusCode(200);
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 WriteToJsonLog("Error on deleting session", LogItemType.Error);
                 return StatusCode(500);
