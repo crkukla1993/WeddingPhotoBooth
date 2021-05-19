@@ -8,10 +8,14 @@ using System.Drawing.Printing;
 using System.Drawing.Imaging;
 using System.Drawing.Drawing2D;
 using System.Drawing;
-using System.Net.Mail;
 using Newtonsoft.Json;
 using WeddingPhotoBooth.Classes;
 using Microsoft.Extensions.Configuration;
+using MimeKit;
+using MimeKit.Text;
+using MailKit.Security;
+using MailKit.Net.Smtp;
+using System.Net.NetworkInformation;
 
 namespace WeddingPhotoBooth.Pages
 {
@@ -26,6 +30,28 @@ namespace WeddingPhotoBooth.Pages
             _photoBoothDirectory = _configuration.GetValue<string>("PhotoBoothDirectory");
         }
 
+        private bool CheckIsOnline()
+        {
+            try
+            {
+                Ping ping = new Ping();
+                PingReply pingReply = ping.Send("www.google.com");
+
+                if (pingReply.Status == IPStatus.Success)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch(Exception)
+            {
+                return false;
+            }
+        }
+
         public IActionResult OnPostComplete([FromBody]CompleteData completeData)
         {
             try
@@ -35,8 +61,15 @@ namespace WeddingPhotoBooth.Pages
                     switch (completeData.Option)
                     {
                         case 1:
-                            SendEmail(completeData.EmailAddress);
-                            WriteToJsonLog("Photos emailed", LogItemType.Complete, completeData.EmailAddress);
+                            if (CheckIsOnline())
+                            {
+                                SendEmail(completeData.EmailAddress);
+                                WriteToJsonLog("Photos emailed", LogItemType.Complete, completeData.EmailAddress);
+                            }
+                            else
+                            {
+                                WriteToJsonLog("Email photos requested", LogItemType.Complete, completeData.EmailAddress);
+                            }
                             break;
                         case 2:
                             PrintPhotos();
@@ -44,8 +77,16 @@ namespace WeddingPhotoBooth.Pages
                             break;
                         case 3:
                             PrintPhotos();
-                            SendEmail(completeData.EmailAddress);
-                            WriteToJsonLog("Photos emailed & printed", LogItemType.Complete, completeData.EmailAddress);
+                            if (CheckIsOnline())
+                            {
+                                SendEmail(completeData.EmailAddress);
+                                WriteToJsonLog("Photos emailed & printed", LogItemType.Complete, completeData.EmailAddress);
+                            }
+                            else
+                            {
+                                WriteToJsonLog("Email photos requested & printed", LogItemType.Complete, completeData.EmailAddress);
+                            }
+                            
                             break;
                         default:
                             throw new Exception("Invalid Option");
@@ -115,7 +156,7 @@ namespace WeddingPhotoBooth.Pages
                 using (var bmp1 = new Bitmap(img1, new Size(img1.Width, img1.Height)))
                 using (var bmp2 = new Bitmap(img2, new Size(img2.Width, img2.Height)))
                 using (var bmp3 = new Bitmap(img3, new Size(img3.Width, img3.Height)))
-                using (var bitmap = new Bitmap(1844, 1240))
+                using (var bitmap = new Bitmap(1800, 1200))
                 {
 
                     var settings = GetTemplateImageSettings((Bitmap)frame);
@@ -200,7 +241,7 @@ namespace WeddingPhotoBooth.Pages
             }
         }
 
-        private void SendEmail(string emailAddress)
+        public void SendEmail(string emailAddress)
         {
             IConfigurationSection emailSection = _configuration.GetSection("Email");
             string smtpClientUrl = emailSection.GetValue<string>("SMTPClientUrl");
@@ -208,28 +249,34 @@ namespace WeddingPhotoBooth.Pages
             string sender = emailSection.GetValue<string>("EmailAddress");
             string emailPassword = emailSection.GetValue<string>("EmailPassword");
             string emailSubject = emailSection.GetValue<string>("EmailSubject");
+            // create message
+            var email = new MimeMessage();
+            email.From.Add(MailboxAddress.Parse(sender));
+            email.To.Add(MailboxAddress.Parse(emailAddress));
+            email.Subject = emailSubject;
 
-            SmtpClient smtpClient = new SmtpClient(smtpClientUrl, smtpClientPort)
+            var builder = new BodyBuilder
             {
-                Credentials = new System.Net.NetworkCredential(sender, emailPassword),
-                EnableSsl = true               
-            };
-            
-            MailMessage mail = new MailMessage
-            {
-                Subject = emailSubject
+                TextBody = "Your photobooth photos are attached!"
             };
 
-            mail.Attachments.Add(new Attachment(Path.Combine(_photoBoothDirectory, "sessions", SessionKey, "photoStrip.jpeg")));
-            mail.Attachments.Add(new Attachment(Path.Combine(_photoBoothDirectory, "sessions", SessionKey, "1.jpeg")));
-            mail.Attachments.Add(new Attachment(Path.Combine(_photoBoothDirectory, "sessions", SessionKey, "2.jpeg")));
-            mail.Attachments.Add(new Attachment(Path.Combine(_photoBoothDirectory, "sessions", SessionKey, "3.jpeg")));
-            
+            string photoStripPath = Path.Combine(_photoBoothDirectory, "sessions", SessionKey, "photoStrip.jpeg");
+            string photo1 = Path.Combine(_photoBoothDirectory, "sessions", SessionKey, "1.jpeg");
+            string photo2 = Path.Combine(_photoBoothDirectory, "sessions", SessionKey, "2.jpeg");
+            string photo3 = Path.Combine(_photoBoothDirectory, "sessions", SessionKey, "3.jpeg");
 
-            mail.From = new MailAddress(sender);
-            mail.To.Add(new MailAddress(emailAddress));
+            builder.Attachments.Add(photoStripPath);
+            builder.Attachments.Add(photo1);
+            builder.Attachments.Add(photo2);
+            builder.Attachments.Add(photo3);
 
-            smtpClient.Send(mail);
+            email.Body = builder.ToMessageBody();
+
+            using var smtp = new SmtpClient();
+            smtp.Connect(smtpClientUrl, smtpClientPort, SecureSocketOptions.StartTls);
+            smtp.Authenticate(sender, emailPassword);
+            smtp.Send(email);
+            smtp.Disconnect(true);
         }
 
         private void PrintPhotos()
@@ -237,14 +284,12 @@ namespace WeddingPhotoBooth.Pages
             try
             {
                 string printerName = _configuration.GetValue<string>("PrinterName");
+
                 PrintDocument pd = new PrintDocument();
                 pd.PrinterSettings.PrinterName = printerName;
-                //pd.PrinterSettings.PrinterName = @"Canon SELPHY CP1300 WS";
-                //pd.PrinterSettings.PrinterName = @"HP807FE1 (HP OfficeJet Pro 6960)";
-                //pd.PrinterSettings.PrinterName = @"HP3B556A (HP Officejet 6600)";
                 pd.DefaultPageSettings.Color = true;
                 pd.OriginAtMargins = false;
-
+                
                 pd.PrintPage += new PrintPageEventHandler
                     (this.PrintImage);
                 pd.Print();
@@ -281,7 +326,8 @@ namespace WeddingPhotoBooth.Pages
                 }
             }
 
-            ev.Graphics.DrawImage(i, 12, 12, (int)(newWidth*2)-12, (int)(newHeight*2)-12);
+            ev.Graphics.DrawImage(i, 10, 15, (int)(newWidth*2)-24, (int)(newHeight*2)-24);
+            //ev.Graphics.DrawImage(i, 12, 12, (int)(newWidth*2)-12, (int)(newHeight*2)-12);
         }
 
         public IActionResult OnPostDeleteSession()

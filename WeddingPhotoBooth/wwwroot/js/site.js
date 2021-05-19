@@ -18,6 +18,10 @@ function generateSessionKeyAndStart() {
     $.ajax({
         type: 'POST',
         url: "?handler=GenerateSessionKey",
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader("XSRF-TOKEN",
+                $('input:hidden[name="__RequestVerificationToken"]').val());
+        },
         success: function (response) {
             start();
         },
@@ -52,6 +56,10 @@ function logAction(action) {
         url: "?handler=LogAction",
         data: JSON.stringify(action),
         contentType: 'application/json',
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader("XSRF-TOKEN",
+                $('input:hidden[name="__RequestVerificationToken"]').val());
+        },
         success: function (response) {
             console.log(action);
         }
@@ -62,6 +70,10 @@ function deleteSession() {
     $.ajax({
         type: 'POST',
         url: "?handler=DeleteSession",
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader("XSRF-TOKEN",
+                $('input:hidden[name="__RequestVerificationToken"]').val());
+        },
         success: function (response) {
             window.location.reload();
         },
@@ -155,14 +167,14 @@ function takePhoto(photoNumber) {
         setTimeout(function () {
             $('#screenshot').addClass('hidden');
             takePhotoCountdown(photoNumber += 1);
-        }, 3000);
+        }, 2000);
     }
     else if (photoNumber === 2) {
         $('#p2')[0].src = image;
         setTimeout(function () {
             $('#screenshot').addClass('hidden');
             takePhotoCountdown(photoNumber += 1);
-        }, 3000);
+        }, 2000);
     }
     else if (photoNumber === 3) {
         $('#p3')[0].src = image;
@@ -180,11 +192,15 @@ function submitPhotos() {
         url: "?handler=SubmitPhotos",
         data: JSON.stringify([p1, p2, p3]),
         contentType: 'application/json',
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader("XSRF-TOKEN",
+                $('input:hidden[name="__RequestVerificationToken"]').val());
+        },
         success: function (response) {
             setTimeout(function () {
                 $('#screenshot').addClass('hidden');
                 $('#exampleModalCenter').modal('show');
-            }, 3000);
+            }, 2000);
 
         },
         fail: function (response) {
@@ -219,7 +235,7 @@ function setEmailButtonDetails(option) {
 function initComplete(option) {
     if (option === 1) {
         $('#collapseSendingMessage').empty();
-        $('#collapseSendingMessage').append('<h1 class="saving">📧 Sending Email<span>.</span><span>.</span><span>.</span></h1>');
+        $('#collapseSendingMessage').append('<h1 class="saving">📧 Your photos will be emailed!<span>.</span><span>.</span><span>.</span></h1>');
         $('.collapseOptions').collapse('hide');
         $('.collapseEmail').collapse('hide');
         $('.collapseSending').collapse('show');
@@ -233,7 +249,7 @@ function initComplete(option) {
     }
     if (option === 3) {
         $('#collapseSendingMessage').empty();
-        $('#collapseSendingMessage').append('<h1 class="saving">🖨 Printing & 📧 Sending Email<span>.</span><span>.</span><span>.</span></h1>');
+        $('#collapseSendingMessage').append('<h1 class="saving">🖨 Printing & 📧 Your photos will be emailed<span>.</span><span>.</span><span>.</span></h1>');
         $('.collapseOptions').collapse('hide');
         $('.collapseEmail').collapse('hide');
         $('.collapseSending').collapse('show');
@@ -248,14 +264,18 @@ function complete(option) {
         url: "?handler=Complete",
         data: JSON.stringify({ "option": option, "emailAddress": $('#email-input').val() }),
         contentType: 'application/json',
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader("XSRF-TOKEN",
+                $('input:hidden[name="__RequestVerificationToken"]').val());
+        },
         success: function (response) {
             if (option === 1) {
                 $('#collapseSendingMessage').empty();
-                $('#collapseSendingMessage').append('<h1 class="text-success">📧 Email Sent!</h1>');
+                $('#collapseSendingMessage').append('<h1 class="text-success">📧 Your photos will be emailed!</h1>');
             }
             else if (option === 3) {
                 $('#collapseSendingMessage').empty();
-                $('#collapseSendingMessage').append('<h1 class="text-success">📧 Email Sent!</h1>');
+                $('#collapseSendingMessage').append('<h1 class="text-success">📧 Your photos will be emailed!</h1>');
                 $('#collapseSendingMessage').append('<h1>🖨 Your photo is printing, go check the printer!</h1>');
             }
             setTimeout(function () {

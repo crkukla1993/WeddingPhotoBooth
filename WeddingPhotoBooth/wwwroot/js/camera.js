@@ -19,7 +19,7 @@ function gotDevices(deviceInfos) {
             console.log('Found another kind of device: ', deviceInfo);
         }
     }
-    $('#videoSource option:last').prop("selected", true);
+    $('#videoSource option:first').prop("selected", true);
 }
 
 function getStream() {
@@ -31,12 +31,16 @@ function getStream() {
 
     const constraints = {
         video: {
-            deviceId: { exact: videoSelect.value }
+            deviceId: { exact: videoSelect.value },
+            width: 1680,
+            height: 1050
         }
     };
 
-    navigator.mediaDevices.getUserMedia(constraints).
-        then(gotStream).catch(handleError);
+    navigator.mediaDevices.getUserMedia(constraints)
+        .then(stream => videoElement.srcObject = stream)
+        .then(() => log(video.videoWidth + "x" + video.videoHeight))
+        .catch(e => console.log(e));
 }
 
 function gotStream(stream) {
