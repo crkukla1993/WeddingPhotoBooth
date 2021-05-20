@@ -146,7 +146,7 @@ function takePhotoCountdown(photoNumber) {
                         }, 1500);
                     }, 1500);
                 }, 1500);
-            }, 1000);
+            }, 1300);
         }, 500);
     }, 1500);
 }
@@ -156,7 +156,10 @@ function takePhotoCountdown(photoNumber) {
 function takePhoto(photoNumber) {
     canvas.width = videoElement.videoWidth;
     canvas.height = videoElement.videoHeight;
-    canvas.getContext('2d').drawImage(videoElement, 0, 0);
+    var context = canvas.getContext('2d');
+    context.scale(-1, 1);
+
+    context.drawImage(videoElement, 0, 0, canvas.width*-1, canvas.height);
     var image = canvas.toDataURL("image/png");
     img.src = image;
     $('#screenshot').removeClass('hidden');
