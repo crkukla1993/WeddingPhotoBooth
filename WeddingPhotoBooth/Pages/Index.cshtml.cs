@@ -393,6 +393,7 @@ namespace WeddingPhotoBooth.Pages
                     {
                         SessionKey = SessionKey,
                         CreateDate = DateTime.Now,
+                        Offline = !CheckIsOnline(),
                         Items = new List<LogItem>()
                     };
 
@@ -408,6 +409,7 @@ namespace WeddingPhotoBooth.Pages
                 else
                 {
                     items.Remove(session);
+                    session.Offline = !CheckIsOnline();
                     session.Items.Add(new LogItem()
                     {
                         Action = action,

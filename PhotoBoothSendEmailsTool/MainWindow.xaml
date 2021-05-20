@@ -1,0 +1,16 @@
+﻿<Window x:Class="PhotoBoothSendEmailsTool.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PhotoBoothSendEmailsTool"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="607" Width="910">
+    <Grid Margin="20,20,20,20">
+        <Button Content="Select log file" Click="SelectLogFile_Click" HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Width="85"/>
+        <DataGrid Name="dataGrid" Margin="0,35,0,0" Height="456" VerticalAlignment="Top"/>
+        <Button x:Name="sendButton" Content="Send Selected Emails!" Click="SendSelectedEmails_Click" Margin="0,496,0,0" Height="30" VerticalAlignment="Top"/>
+        <TextBox Name="failures" Visibility="Hidden" HorizontalAlignment="Center" Margin="0,58,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Width="850" Height="414"/>
+
+    </Grid>
+</Window>

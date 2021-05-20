@@ -9,6 +9,7 @@ namespace WeddingPhotoBooth.Classes
     {
         public string SessionKey { get; set; }
         public DateTime CreateDate { get; set; }
+        public bool Offline { get; set; }
         public List<LogItem> Items { get; set; }
     }
 }
