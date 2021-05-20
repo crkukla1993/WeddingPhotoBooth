@@ -146,7 +146,7 @@ function takePhotoCountdown(photoNumber) {
                         }, 1500);
                     }, 1500);
                 }, 1500);
-            }, 1500);
+            }, 1000);
         }, 500);
     }, 1500);
 }
