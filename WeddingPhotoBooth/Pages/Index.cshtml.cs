@@ -12,7 +12,6 @@ using Newtonsoft.Json;
 using WeddingPhotoBooth.Classes;
 using Microsoft.Extensions.Configuration;
 using MimeKit;
-using MimeKit.Text;
 using MailKit.Security;
 using MailKit.Net.Smtp;
 using System.Net.NetworkInformation;

@@ -90,12 +90,12 @@ function start() {
         $('#btn-start-over').removeClass('hidden');
         $('#countdown-container')
             .removeClass('hidden')
-            .append('<h1>Get Ready!</h1>');
-        setTimeout(function () {
+            .append('<h1></h1>');
+        //setTimeout(function () {
             $('#countdown-container > h1').addClass('slide-down');
             $('#btn-start-over').addClass('slide-down');
             takePhotoCountdown(1);
-        }, 1000);
+        //}, 1000);
     }, 1000);
 }
 
@@ -118,7 +118,7 @@ function takePhotoCountdown(photoNumber) {
             .removeClass('slide-down');
         setTimeout(function () {
             $('#countdown-container > h1')
-                .text('Taking ' + numberText + ' photo in...')
+                .text('Get ready for the  ' + numberText + ' photo...')
                 .addClass('slide-down');
             setTimeout(function () {
                 $('#countdown-container > h1')
@@ -146,7 +146,7 @@ function takePhotoCountdown(photoNumber) {
                         }, 1500);
                     }, 1500);
                 }, 1500);
-            }, 1300);
+            }, 7000);
         }, 500);
     }, 1500);
 }
