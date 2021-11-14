@@ -1,5 +1,6 @@
 ﻿const img = $('#screenshot img')[0];
 const canvas = document.createElement('canvas');
+const prevcanvas = document.createElement('canvas');
 
 function init() {
     $('#start-action-container').modal('show');
@@ -49,7 +50,7 @@ function initStartButtonClickListener() {
                 generateSessionKeyAndStart();
             }
         }
-        else if (event.type === "touchstart") {
+        else if (event.type === "touchend") {
             generateSessionKeyAndStart();
         }
     });
@@ -93,15 +94,17 @@ function start() {
         $('#start-action-container').modal('hide');
         $('#take-photo-action-container').modal('show');
         $('#btn-start-over').removeClass('hidden');
+        $('#prev-img-container').removeClass('hidden');
         $('#countdown-container')
             .removeClass('hidden')
             .append('<h1></h1>');
-        //setTimeout(function () {
+        setTimeout(function () {
             $('#countdown-container > h1').addClass('slide-down');
             $('#btn-start-over').addClass('slide-down');
+            $('#prev-img-container').addClass('slide-in');
             takePhotoCountdown(1);
-        //}, 1000);
-    }, 1000);
+        }, 500);
+    }, 500);
 }
 
 function takePhotoCountdown(photoNumber) {
@@ -140,6 +143,9 @@ function takePhotoCountdown(photoNumber) {
                             $('#countdown-container > h1')
                                 .text('1');
                             setTimeout(function () {
+                                $('#prev-img-container').removeClass('slide-in');
+                            }, 1000);
+                            setTimeout(function () {
                                 $('#flash-container').removeClass('hidden');
                             }, 1500);
                             setTimeout(function () {
@@ -150,42 +156,59 @@ function takePhotoCountdown(photoNumber) {
                             }, 2000);
                         }, 1500);
                     }, 1500);
-                }, 1500);
-            }, 2000);
+                }, 500);
+            }, 4000);
         }, 500);
-    }, 1500);
+    }, 500);
 }
 
 
 
 function takePhoto(photoNumber) {
-    canvas.width = videoElement.videoWidth;
-    canvas.height = videoElement.videoHeight;
-    var context = canvas.getContext('2d');
-    context.scale(-1, 1);
+    let vw = videoElement.videoWidth;
+    let vh = videoElement.videoHeight;
+    canvas.width = vw / 2.0;
+    canvas.height = vh / 2.0;
+    prevcanvas.width = vw / 6.0
+    prevcanvas.height = vh / 6.0;
 
-    context.drawImage(videoElement, 0, 0, canvas.width*-1, canvas.height);
+    let context = canvas.getContext('2d');
+    context.scale(-1, 1);
+    let prevcontext = prevcanvas.getContext('2d');
+    prevcontext.scale(-1, 1);
+
+    context.drawImage(videoElement, 0, 0, canvas.width * -1, canvas.height);
+    prevcontext.drawImage(videoElement, 0, 0, prevcanvas.width * -1, prevcanvas.height);
+
     var image = canvas.toDataURL("image/png");
+    var previmage = prevcanvas.toDataURL("image/png");
     img.src = image;
+
     $('#screenshot').removeClass('hidden');
     $('#flash-container').addClass('hidden');
     logAction(`Photo ${photoNumber} taken`);
     if (photoNumber === 1) {
         $('#p1')[0].src = image;
+        $('#pprev1')[0].src = previmage;
         setTimeout(function () {
             $('#screenshot').addClass('hidden');
+            $('#prev-img-container').addClass('slide-in');
             takePhotoCountdown(photoNumber += 1);
-        }, 2000);
+        }, 1500);
     }
     else if (photoNumber === 2) {
         $('#p2')[0].src = image;
+        $('#pprev2')[0].src = previmage;
         setTimeout(function () {
             $('#screenshot').addClass('hidden');
+            $('#prev-img-container').addClass('slide-in');
+            $('#prev-img-container').removeClass('hidden');
             takePhotoCountdown(photoNumber += 1);
-        }, 2000);
+        }, 1500);
     }
     else if (photoNumber === 3) {
         $('#p3')[0].src = image;
+        $('#pprev3')[0].src = previmage;
         submitPhotos();
     }
 }
@@ -207,6 +230,7 @@ function submitPhotos() {
         success: function (response) {
             setTimeout(function () {
                 $('#screenshot').addClass('hidden');
+                $('#prev-img-container').addClass('hidden');
                 $('#exampleModalCenter').modal('show');
             }, 2000);
 
@@ -315,3 +339,7 @@ $(document).ready(function () {
     });
     init();
 });
+
+window.addEventListener("contextmenu", function (e) {
+    e.preventDefault();
+})

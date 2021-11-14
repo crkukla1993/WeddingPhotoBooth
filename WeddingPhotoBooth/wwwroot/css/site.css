@@ -82,9 +82,10 @@ h1 {
     right: 0;
     margin: 2rem;
     padding: 0 2rem 1rem 2rem;
-    font-size: 6em;
+    font-size: 5em;
     transition: all 0.5s;
     transform: translateY(-4em);
+    opacity: 0.75;
 }
 
     #btn-start-over.slide-down {
@@ -92,7 +93,7 @@ h1 {
     }
 
     #btn-start-over:hover {
-        font-size: 6.5em;
+        font-size: 5.5em;
         transition: all 0.5s;
     }
 
@@ -231,3 +232,23 @@ h1 {
     .saving span:nth-child(3) {
         animation-delay: .4s;
     }
+
+.prev-img-container {
+    position: fixed;
+    width: auto;
+    right: -230px;
+    bottom: 0;
+    height: 75%;
+    opacity: 0.75;
+    transition: all 0.5s ease;
+}
+
+.prev-img-container.slide-in {
+    right: 0;
+    transition: all 0.5s ease;
+}
+
+.prev-img-fit {
+    width: 209px;
+
+}
