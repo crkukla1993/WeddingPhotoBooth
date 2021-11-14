@@ -43,8 +43,13 @@ function initSpacebarListener() {
 }
 
 function initStartButtonClickListener() {
-    $('#btn-start').on('click', function (event) {
-        if (event.which === 1) {
+    $('#btn-start').on('click touchstart', function (event) {
+        if (event.type === "click") {
+            if (event.which === 1) {
+                generateSessionKeyAndStart();
+            }
+        }
+        else if (event.type === "touchstart") {
             generateSessionKeyAndStart();
         }
     });
@@ -146,7 +151,7 @@ function takePhotoCountdown(photoNumber) {
                         }, 1500);
                     }, 1500);
                 }, 1500);
-            }, 7000);
+            }, 2000);
         }, 500);
     }, 1500);
 }
