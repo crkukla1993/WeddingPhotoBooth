@@ -167,8 +167,8 @@ function takePhotoCountdown(photoNumber) {
 function takePhoto(photoNumber) {
     let vw = videoElement.videoWidth;
     let vh = videoElement.videoHeight;
-    canvas.width = vw / 2.0;
-    canvas.height = vh / 2.0;
+    canvas.width = vw;
+    canvas.height = vh;
     prevcanvas.width = vw / 6.0
     prevcanvas.height = vh / 6.0;
 
