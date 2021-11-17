@@ -325,7 +325,8 @@ namespace WeddingPhotoBooth.Pages
                 }
             }
 
-            ev.Graphics.DrawImage(i, 10, 15, (int)(newWidth*2)-24, (int)(newHeight*2)-24);
+            ev.Graphics.DrawImage(i, 12, 4, (int)(newWidth*2)-28, (int)(newHeight*2)-6);
+            //Wev.Graphics.DrawImage(i, 10, 15, (int)(newWidth*2)-24, (int)(newHeight*2)-24);
             //ev.Graphics.DrawImage(i, 12, 12, (int)(newWidth*2)-12, (int)(newHeight*2)-12);
         }
 
