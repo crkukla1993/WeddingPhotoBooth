@@ -19,7 +19,9 @@ function gotDevices(deviceInfos) {
             console.log('Found another kind of device: ', deviceInfo);
         }
     }
-    $('#videoSource option:first').prop("selected", true);
+    const source = document.querySelector("#videoSource option");
+    source.setAttribute("selected", "true");
+    //$('#videoSource option:first').prop("selected", true);
 }
 
 function getStream() {

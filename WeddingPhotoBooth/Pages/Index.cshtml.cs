@@ -339,7 +339,7 @@ namespace WeddingPhotoBooth.Pages
                 WriteToJsonLog("Session deleted", LogItemType.System);
                 return StatusCode(200);
             }
-            catch (Exception e)
+            catch
             {
                 WriteToJsonLog("Error on deleting session", LogItemType.Error);
                 return StatusCode(500);

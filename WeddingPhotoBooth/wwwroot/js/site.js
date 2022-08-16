@@ -1,9 +1,11 @@
-﻿const img = $('#screenshot img')[0];
+﻿import $ from "jquery";
+
+const img = document.querySelector("#screenshot img");
 const canvas = document.createElement('canvas');
 const prevcanvas = document.createElement('canvas');
 
 function init() {
-    $('#start-action-container').modal('show');
+    document.querySelector("#start-action-container").classList.add("show");
     initSpacebarListener();
     initStartButtonClickListener();
 
@@ -14,46 +16,77 @@ function init() {
 }
 
 function generateSessionKeyAndStart() {
-    $(window).off('keypress');
-    $('#btn-start').off('click');
-    $.ajax({
-        type: 'POST',
-        url: "?handler=GenerateSessionKey",
-        beforeSend: function (xhr) {
-            xhr.setRequestHeader("XSRF-TOKEN",
-                $('input:hidden[name="__RequestVerificationToken"]').val());
-        },
-        success: function (response) {
+    window.removeEventListener("keypress");
+    document.querySelector("#btn-start").removeEventListener("click");
+    const key = document.querySelector("input:hidden[name=\"__RequestVerificationToken\"]");
+    const myHeaders = new Headers();
+    myHeaders.append("XSRF-TOKEN", key.value);
+    fetch("?handler=GenerateSessionKey", {
+        method: "POST",
+        headers: myHeaders,
+    })
+        .then((response) => {
             start();
-        },
-        fail: function (response) {
+        })
+        .catch((response) => {
             initSpacebarListener();
             initStartButtonClickListener();
             alert('An error occured... :(');
-        }
-    });
+        });
+
+    //$.ajax({
+    //    type: 'POST',
+    //    url: "?handler=GenerateSessionKey",
+    //    beforeSend: function (xhr) {
+    //        xhr.setRequestHeader("XSRF-TOKEN",
+    //            $('input:hidden[name="__RequestVerificationToken"]').val());
+    //    },
+    //    success: function (response) {
+    //        start();
+    //    },
+    //    fail: function (response) {
+    //        initSpacebarListener();
+    //        initStartButtonClickListener();
+    //        alert('An error occured... :(');
+    //    }
+    //});
 }
 
 function initSpacebarListener() {
-    $(window).on('keypress', function (event) {
+    window.addEventListener("keypress", function (event) {
         if (event.which === 32) {
-            $('#btn-start').focus();
+            document.querySelector("#btn-start").focus();
             generateSessionKeyAndStart();
         }
     });
 }
 
-function initStartButtonClickListener() {
-    $('#btn-start').on('click touchstart', function (event) {
-        if (event.type === "click") {
-            if (event.which === 1) {
-                generateSessionKeyAndStart();
-            }
-        }
-        else if (event.type === "touchend") {
+btnStartListenerFunction  = (event) => {
+    if (event.type === "click") {
+        if (event.which === 1) {
             generateSessionKeyAndStart();
         }
-    });
+    }
+    else if (event.type === "touchend") {
+        generateSessionKeyAndStart();
+    }
+}
+
+function initStartButtonClickListener() {
+    const btnStart = document.querySelector("#btn-start");
+    btnStart.addEventListener("click", btnStartListenerFunction);
+    btnStart.addEventListener("touchstart", btnStartListenerFunction);
+
+    //$('#btn-start').on('click touchstart', function (event) {
+    //    if (event.type === "click") {
+    //        if (event.which === 1) {
+    //            generateSessionKeyAndStart();
+    //        }
+    //    }
+    //    else if (event.type === "touchend") {
+    //        generateSessionKeyAndStart();
+    //    }
+    //});
 }
 
 function logAction(action) {
@@ -333,8 +366,8 @@ function backToOptions() {
     $('.collapseOptions').collapse('show');
 }
 
-$(document).ready(function () {
-    $('#completeForm').on('submit', function (e) {
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelector("#completeForm").addEventListener("submit", function (e) {
         e.preventDefault();
     });
     init();
@@ -342,4 +375,4 @@ $(document).ready(function () {
 
 window.addEventListener("contextmenu", function (e) {
     e.preventDefault();
-})
+});
